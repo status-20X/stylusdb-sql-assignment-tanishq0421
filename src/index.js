@@ -2,15 +2,14 @@ const { parseQuery } = require("./queryParser");
 const { readCSV } = require("./csvReader");
 
 module.exports.executeSELECTQuery = async (query) => {
-  const { fields, table, whereClause } = parseQuery(query);
+  const { fields, table, whereClauses } = parseQuery(query);
   const data = await readCSV(`${table}.csv`);
 
   //Filtering based on WHERE Clause
-  const filteredData = whereClause
-    ? data.filter((row) => {
-        const [field, value] = whereClause.split("=").map((s) => s.trim());
-        return (row[field] === value);
-      })
+  const filteredData = whereClauses.length > 0
+    ? data.filter((row) => whereClauses.every(clause => {
+        return (row[clause.field] === clause.value);
+      }))
     : data;
 
   // Selecting the specific fields
